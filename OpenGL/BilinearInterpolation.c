@@ -1,4 +1,4 @@
-ï»¿#include <GL/glew.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -7,10 +7,9 @@
 #include <string.h>
 #include <malloc.h>
 
-const unsigned int WIN_W = 500; // ìœˆë„ìš°ì˜ ê°€ë¡œ í¬ê¸°
-const unsigned int WIN_H = 500; // ìœˆë„ìš°ì˜ ì„¸ë¡œ í¬ê¸°
-
-GLfloat clr[4] = { 0.0F, 0.0F, 0.0F, 1.0F };
+/* Àü¿ªº¯¼ö */
+const unsigned int WIN_W = 500; // À©µµ¿ìÀÇ °¡·Î Å©±â
+const unsigned int WIN_H = 500; // À©µµ¿ìÀÇ ¼¼·Î Å©±â
 
 const char* vertexShaderFileName = "VertexShader.vert";
 const char* fragmentShaderFileName = "FragmentShader.frag";
@@ -19,30 +18,31 @@ GLuint vertexShaderID = 0;
 GLuint fragmentShaderID = 0;
 GLuint ShaderProgramID = 0;
 GLuint vertexBufferObjectID = 0;
+GLuint vertexArrayObjectID = 0;
 
 /*
 loadSourceCode :
-íŒŒì¼ ì´ë¦„ì„ ë§¤ê°œ ë³€ìˆ˜ë¡œ ë°›ì•„ ë‚´ìš©ì„ ì½ê³  ë¬¸ìì—´ë¡œ ë°˜í™˜í•˜ëŠ” í•¨ìˆ˜
+ÆÄÀÏ ÀÌ¸§À» ¸Å°³ º¯¼ö·Î ¹Ş¾Æ ³»¿ëÀ» ÀĞ°í ¹®ÀÚ¿­·Î ¹İÈ¯ÇÏ´Â ÇÔ¼ö
 */
-const char* loadSourceCode(const char* filename) { 
-	FILE* fp = fopen(filename, "r"); // íŒŒì¼ì„ ì½ê¸°ëª¨ë“œ(r)ë¡œ ì—´ê¸° 
-	if (fp == NULL) { // ì‹¤íŒ¨í•  ê²½ìš° ì˜¤ë¥˜ ë©”ì‹œì§€ë¥¼ ì¶œë ¥
+const char* loadSourceCode(const char* filename) {
+	FILE* fp = fopen(filename, "r"); // ÆÄÀÏÀ» ÀĞ±â¸ğµå(r)·Î ¿­±â 
+	if (fp == NULL) { // ½ÇÆĞÇÒ °æ¿ì ¿À·ù ¸Ş½ÃÁö¸¦ Ãâ·Â
 		fprintf(stderr, "Error: cannot open \"%s\"\n", filename);
 		return NULL;
 	}
-	fseek(fp, 0, SEEK_END); // íŒŒì¼ì˜ ë§¨ ëìœ¼ë¡œ ì´ë™
-	size_t len = ftell(fp); // íŒŒì¼ì˜ í˜„ì¬ ìœ„ì¹˜ë¥¼ ì €ì¥(ë°”ì´íŠ¸ë‹¨ìœ„ë¡œ ë°˜í™˜, íŒŒì¼ì˜ í¬ê¸°)
-	rewind(fp); // ë‹¤ì‹œ ì²˜ìŒìœ¼ë¡œ ì´ë™
-	char* buf = (char*)malloc(sizeof(char) * (len + 4)); // íŒŒì¼ì„ ì €ì¥í•  ë™ì  ë©”ëª¨ë¦¬ í• ë‹¹
-	size_t size = fread(buf, sizeof(char), len, fp); // íŒŒì¼ì„ ì½ì–´ì„œ ë©”ëª¨ë¦¬ì— ì €ì¥
-	fclose(fp); // íŒŒì¼ ë‹«ê¸°
-	buf[size] = '\0'; // íŒŒì¼ì˜ ëì— ë„ë¬¸ì ì¶”ê°€
-	return (const char*)buf;  // ë¬¸ìì—´ ë°˜í™˜
+	fseek(fp, 0, SEEK_END); // ÆÄÀÏÀÇ ¸Ç ³¡À¸·Î ÀÌµ¿
+	size_t len = ftell(fp); // ÆÄÀÏÀÇ ÇöÀç À§Ä¡¸¦ ÀúÀå(¹ÙÀÌÆ®´ÜÀ§·Î ¹İÈ¯, ÆÄÀÏÀÇ Å©±â)
+	rewind(fp); // ´Ù½Ã Ã³À½À¸·Î ÀÌµ¿
+	char* buf = (char*)malloc(sizeof(char) * (len + 4)); // ÆÄÀÏÀ» ÀúÀåÇÒ µ¿Àû ¸Ş¸ğ¸® ÇÒ´ç
+	size_t size = fread(buf, sizeof(char), len, fp); // ÆÄÀÏÀ» ÀĞ¾î¼­ ¸Ş¸ğ¸®¿¡ ÀúÀå
+	fclose(fp); // ÆÄÀÏ ´İ±â
+	buf[size] = '\0'; // ÆÄÀÏÀÇ ³¡¿¡ ³Î¹®ÀÚ Ãß°¡
+	return (const char*)buf;  // ¹®ÀÚ¿­ ¹İÈ¯
 }
 
 /*
 initShader :
-ì…°ì´ë” í”„ë¡œê·¸ë¨ì„ ì»´íŒŒì¼í•˜ê³  ë§í¬í•˜ëŠ” í•¨ìˆ˜
+¼ÎÀÌ´õ ÇÁ·Î±×·¥À» ÄÄÆÄÀÏÇÏ°í ¸µÅ©ÇÏ´Â ÇÔ¼ö
 */
 void initShader(void) {
 	const char* vertexShaderSource = loadSourceCode(vertexShaderFileName);
@@ -51,9 +51,11 @@ void initShader(void) {
 	vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShaderID, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShaderID);
+
 	fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderID, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShaderID);
+
 	ShaderProgramID = glCreateProgram();
 	glAttachShader(ShaderProgramID, vertexShaderID);
 	glAttachShader(ShaderProgramID, fragmentShaderID);
@@ -68,30 +70,29 @@ void initShader(void) {
 	}
 }
 
+/* ÀÔ·Â Á¤º¸ */
 GLfloat vertices[] = {
-	-0.5f, -0.5f, 0.0f, 1.0f,
-	0.5f, -0.5f, 0.0f, 1.0f,
-	0.0f, 0.5f, 0.0f, 1.0f
+	// À§Ä¡(vec4)/»ö(vec4)
+	0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f
 };
 
 void drawFunc(void) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glGenBuffers(1, &vertexBufferObjectID);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjectID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glBindVertexArray(vertexArrayObjectID);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glFinish();
 }
 
-// Refresh Callback í•¨ìˆ˜ë¥¼ ì •ì˜
+// Refresh Callback ÇÔ¼ö¸¦ Á¤ÀÇ
 void refreshFunc(GLFWwindow* window) {
 	drawFunc();
 	glfwSwapBuffers(window);
 }
 
-// Keyboard Callback í•¨ìˆ˜ë¥¼ ì •ì˜
+// Keyboard Callback ÇÔ¼ö¸¦ Á¤ÀÇ
 void keyFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	switch (key) {
 	case GLFW_KEY_ESCAPE:
@@ -104,12 +105,27 @@ void keyFunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
 int main(void) {
 	glfwInit();
-	GLFWwindow* window = glfwCreateWindow(WIN_W, WIN_H, "Callback Reference Program", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(WIN_W, WIN_H, "Bilinear Interpolation", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	glewInit();
 	glfwSetWindowRefreshCallback(window, refreshFunc);
 	glfwSetKeyCallback(window, keyFunc);
+
 	initShader();
+
+	glGenVertexArrays(1, &vertexArrayObjectID);
+	glGenBuffers(1, &vertexBufferObjectID);
+	glBindVertexArray(vertexArrayObjectID);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjectID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(4 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 	while (!glfwWindowShouldClose(window)) {
 		drawFunc();
 		glfwSwapBuffers(window);
